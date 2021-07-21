@@ -7,5 +7,5 @@ and here we are in phase one after building the game itself.
 
 #### to-do:
 
-- implement the AI program to solve the game
+- <s>implement the AI program to solve the game</s>
 - maybe implement a GUI for regular users 
