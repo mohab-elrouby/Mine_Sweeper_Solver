@@ -1,6 +1,12 @@
 
 import random
 import time
+import sys
+import pygame
+import math
+
+GREY = (220,220,220)
+DARK_GREY = (100,100,100)
 class MineSweeper:
     def __init__(self, bombs, height, width ):
         self.bombs = bombs
@@ -45,7 +51,7 @@ class MineSweeper:
         for row in board:
             print("    ".join(str(cell) for cell in row))
             print("")
-        return board
+        
 
     def make_bomb_arr(self,height, width, n_bombs, x, y):
         # creating a list of all possible bombs locations. we take the
@@ -58,7 +64,9 @@ class MineSweeper:
         # clearing all cells around the first click
         for i in range (x-1, x+2):
             for j in range (y-1, y+2):
-                all_possible_locations.remove([i,j])
+                if(0 <= i < height and 0 <= j < width):
+                    print("first click was true")
+                    all_possible_locations.remove([j,i])
 
         # taking a random sample of all possible locations to place the bombs in
         bombs_arr = random.sample(all_possible_locations, k=n_bombs)
@@ -105,6 +113,7 @@ class MineSweeper:
             return
         
         player_map[y][x]=minesweeper_map[y][x]
+
         if (x > 0 and minesweeper_map[y][x] == 0): # left
             self.updateBoard(minesweeper_map, player_map, y, x-1, width, height)
         if (y > 0 and minesweeper_map[y][x] == 0): #top
@@ -123,50 +132,76 @@ class MineSweeper:
         if (y < height and minesweeper_map[y][x] == 0): # down_right
             self.updateBoard(minesweeper_map, player_map, y+1, x+1, width, height)
 
+        
 
-    def Game(self):
-        GameStatus = True
-        while GameStatus:
-            print("Enter the cell you want to open :")
-            x = int(input("X ({} to {}) :" .format(1, width)))
-            y = int(input("Y ({} to {}) :" .format(1, height)))
-            bombs_arr = self.make_bomb_arr(height, width, n_bombs, x, y)
-            minesweeper_map = self.populate_minesweeper(bombs_arr, height, width)
-            player_map = self.GeneratePlayerBoard(height, width)
-            self.updateBoard(minesweeper_map, player_map, y, x, width, height)
-            self.show_board(player_map)
-
-            score = 0
-            initial_time = time.time() 
-            
-            while True:
-                if self.CheckWon(player_map, n_bombs) == False:
-                    print("Enter the cell you want to open :")
-                    x = input("X ({} to {}) :" .format(1, width))
-                    y = input("Y ({} to {}) :" .format(1, height))
-                    x = (int(x) - 1 )# 0 based indexing
-                    y = (int(y) - 1 )# 0 based indexing
-                    if (minesweeper_map[y][x] == 'X'):
-                        print("Game Over!")
-                        self.show_board(minesweeper_map)
-                        final_time = time.time()
-                        total_time = final_time-initial_time
-                        print("your time: {} seconds" .format(int(total_time)))
-                        GameStatus = self.CheckContinueGame(score)
-                        break
-                    else:
-                        self.updateBoard(minesweeper_map, player_map, y, x, width, height)
-                        self.show_board(player_map)
-                        score += 1
     
-                else:
-                    print("You have Won!")
-                    final_time = time.time()
-                    total_time = final_time-initial_time
-                    print("your time: {} seconds" .format(int(total_time)))
-                    GameStatus = self.CheckContinueGame(score)
-                    break
+    def Game(self):
+        CELLSIZE = 30
+        screen_height = (height+2)*CELLSIZE
+        screen_width = width*CELLSIZE
 
+        size = (screen_width, screen_height)
+        screen = pygame.display.set_mode(size)
+        screen.fill(GREY)
+        
+        for i in range(self.width):
+            for j in range(self.height):
+                pygame.draw.rect(screen, DARK_GREY, (i*CELLSIZE, j*CELLSIZE, CELLSIZE, CELLSIZE),2)
+                
+        GameStatus = True
+        firstClick = True
+        while GameStatus:
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                if (event.type == pygame.MOUSEBUTTONDOWN):
+                    x = (int(math.floor(event.pos[0]/CELLSIZE)))
+                    y = (int(math.floor(event.pos[1]/CELLSIZE)))
+                    bombs_arr = self.make_bomb_arr(height, width, n_bombs, x, y)
+                    minesweeper_map = self.populate_minesweeper(bombs_arr, height, width)
+                    player_map = self.GeneratePlayerBoard(height, width)
+                    self.updateBoard(minesweeper_map, player_map, y, x, width, height)
+                    print(bombs_arr)
+                    self.show_board(player_map)
+                    firstClick = False
+                    score = 0
+                    initial_time = time.time() 
+                    break
+            
+            while not firstClick:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        sys.exit()
+                    if (event.type == pygame.MOUSEBUTTONDOWN):
+                        if self.CheckWon(player_map, n_bombs) == False:                    
+                            x = (int(math.floor(event.pos[0]/CELLSIZE)))
+                            y = (int(math.floor(event.pos[1]/CELLSIZE)))
+                            print(bombs_arr)
+                            if (minesweeper_map[y][x] == 'X'):
+                                print("Game Over!")
+                                self.show_board(minesweeper_map)
+                                final_time = time.time()
+                                total_time = final_time-initial_time
+                                print("your time: {} seconds" .format(int(total_time)))
+                                GameStatus = self.CheckContinueGame(score)
+                                firstClick = GameStatus
+                                break
+                            else:
+                                self.updateBoard(minesweeper_map, player_map, y, x, width, height)
+                                time.sleep(0.1)
+                                self.show_board(player_map)
+                                score += 1
+                        else:
+                            print("You have Won!")
+                            final_time = time.time()
+                            total_time = final_time-initial_time
+                            print("your time: {} seconds" .format(int(total_time)))
+                            GameStatus = self.CheckContinueGame(score)
+                            firstClick = GameStatus
+                            break
+                        
 # Start of Program
 height = int(input("enter number of rows:"))
 width = int(input("enter number of columns:"))
