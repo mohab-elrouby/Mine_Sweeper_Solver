@@ -4,9 +4,19 @@ import time
 import sys
 import pygame
 import math
+import button
 
-GREY = (220,220,220)
+
+pygame.init()
+
+GREY = (180,180,180)
 DARK_GREY = (100,100,100)
+BLACK = (0, 0, 0)
+WHITE = (255,255,255)
+GREEN = (10,150,30)
+BLUE = (10,50,150)
+RED = (150,10,10)
+
 class MineSweeper:
     def __init__(self, bombs, height, width ):
         self.bombs = bombs
@@ -65,7 +75,6 @@ class MineSweeper:
         for i in range (x-1, x+2):
             for j in range (y-1, y+2):
                 if(0 <= i < height and 0 <= j < width):
-                    print("first click was true")
                     all_possible_locations.remove([j,i])
 
         # taking a random sample of all possible locations to place the bombs in
@@ -99,21 +108,49 @@ class MineSweeper:
 
 
     def CheckContinueGame(self, score):
-        print("number of moves: ", score) 
-        isContinue = input("Do you want to try again? (y/n) :")
-        if isContinue == 'n':
-            return False
-        return True
+
+        screen_height = height*30
+        screen_width = width*30
+        size = (screen_width, screen_height)
+        start_img = pygame.image.load('play_again_btn.png').convert_alpha()
+        score_btn = button.Button(width*8, height*2, score, 0.8)
+        start_button = button.Button(width*10, height*10, start_img, 0.8)
+
+        while True:
+            screen = pygame.display.set_mode(size)
+            screen.fill(WHITE)
+            isClicked = start_button.draw(screen)
+            score_btn.draw(screen)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                        sys.exit()
+                if (event.type == pygame.MOUSEBUTTONDOWN and isClicked):
+                    print("clicked")
+                    screen.fill(WHITE)
+                    return True
+            pygame.display.update()
+
 
 
     # recursive function to update the board on click (took me the whole day)
+    # the function now updates the gui as well using the "draw_board" function
     def updateBoard(self, minesweeper_map, player_map, y, x, width, height):
-
+        CELLSIZE = 25
+        MARGIN = 5
+        screen_height = height*(CELLSIZE+MARGIN)
+        screen_width = width*(CELLSIZE+MARGIN)
+        size = (screen_width, screen_height)
+        screen = pygame.display.set_mode(size)
+        screen.fill(WHITE)
+        
         if (x < 0 or x >= width or y < 0 or y >= height or player_map[y][x] != "-" or minesweeper_map[y][x] == "X"):
             return
         
         player_map[y][x]=minesweeper_map[y][x]
-
+        
+        time.sleep(0.05)
+        self.draw_board(screen, CELLSIZE, player_map, MARGIN)
+        
         if (x > 0 and minesweeper_map[y][x] == 0): # left
             self.updateBoard(minesweeper_map, player_map, y, x-1, width, height)
         if (y > 0 and minesweeper_map[y][x] == 0): #top
@@ -132,38 +169,76 @@ class MineSweeper:
         if (y < height and minesweeper_map[y][x] == 0): # down_right
             self.updateBoard(minesweeper_map, player_map, y+1, x+1, width, height)
 
-        
+
+    def draw_cell(self, screen, CELLSIZE, MARGIN, row, column, color, isText, number_font, board):
+        pygame.draw.rect(screen,
+                                color,
+                                [(MARGIN + CELLSIZE) * column + MARGIN,
+                                (MARGIN + CELLSIZE) * row + MARGIN,
+                                CELLSIZE,
+                                CELLSIZE])
+        if isText:
+            number_text  = str(board[row][column] )
+            number_image = number_font.render( number_text, True, BLACK )
+
+            # centre the image in the cell by calculating the margin-distance
+            margin_x = ( CELLSIZE-1  ) // 2
+            margin_y = ( CELLSIZE-1 ) // 2
+
+            # Draw the number image
+            screen.blit( number_image,
+                ( (MARGIN + CELLSIZE) * column + MARGIN + margin_x, 
+                (MARGIN + CELLSIZE) * row + MARGIN + margin_y ) )
+
+
+    def draw_board(self, screen, CELLSIZE, board, MARGIN):
+        number_font = pygame.font.SysFont( None, 16 )   # default font, size 16
+        for row in range(height):
+            for column in range(width):
+                color = GREEN
+                isText = False
+                if board[row][column] == 'X':
+                    color = RED
+                    isText = True
+                elif board[row][column] == '*':
+                    color = BLUE
+                    isText = True
+                elif board[row][column] == '-':
+                    color = GREY
+                    isText = False
+                elif board[row][column] != 0: 
+                    color = GREEN
+                    isText = True
+                self.draw_cell(screen, CELLSIZE, MARGIN, row, column, color, isText, number_font, board)
+
+        pygame.display.flip()
+
 
     
     def Game(self):
-        CELLSIZE = 30
-        screen_height = (height+2)*CELLSIZE
-        screen_width = width*CELLSIZE
-
-        size = (screen_width, screen_height)
-        screen = pygame.display.set_mode(size)
-        screen.fill(GREY)
-        
-        for i in range(self.width):
-            for j in range(self.height):
-                pygame.draw.rect(screen, DARK_GREY, (i*CELLSIZE, j*CELLSIZE, CELLSIZE, CELLSIZE),2)
-                
+        CELLSIZE = 25
+        MARGIN = 5
+        screen_height = height*(CELLSIZE+MARGIN)
+        screen_width = width*(CELLSIZE+MARGIN)
+        size = (screen_width, screen_height)               
         GameStatus = True
         firstClick = True
         while GameStatus:
-            pygame.display.update()
-
+            screen = pygame.display.set_mode(size)
+            screen.fill(WHITE) 
+            player_map=self.GeneratePlayerBoard(height, width)
+            self.draw_board(screen, CELLSIZE, player_map, MARGIN)
+            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
                 if (event.type == pygame.MOUSEBUTTONDOWN):
-                    x = (int(math.floor(event.pos[0]/CELLSIZE)))
-                    y = (int(math.floor(event.pos[1]/CELLSIZE)))
+                    x = (int(math.floor(event.pos[0]/(CELLSIZE+MARGIN))))
+                    y = (int(math.floor(event.pos[1]/(CELLSIZE+MARGIN))))
                     bombs_arr = self.make_bomb_arr(height, width, n_bombs, x, y)
                     minesweeper_map = self.populate_minesweeper(bombs_arr, height, width)
                     player_map = self.GeneratePlayerBoard(height, width)
                     self.updateBoard(minesweeper_map, player_map, y, x, width, height)
-                    print(bombs_arr)
                     self.show_board(player_map)
                     firstClick = False
                     score = 0
@@ -172,40 +247,40 @@ class MineSweeper:
             
             while not firstClick:
                 for event in pygame.event.get():
+                    checkWon = self.CheckWon(player_map, n_bombs)
                     if event.type == pygame.QUIT:
                         sys.exit()
-                    if (event.type == pygame.MOUSEBUTTONDOWN):
-                        if self.CheckWon(player_map, n_bombs) == False:                    
-                            x = (int(math.floor(event.pos[0]/CELLSIZE)))
-                            y = (int(math.floor(event.pos[1]/CELLSIZE)))
-                            print(bombs_arr)
+                    if checkWon == False: 
+                        if (event.type == pygame.MOUSEBUTTONDOWN):                   
+                            x = (int(math.floor(event.pos[0]/(CELLSIZE+MARGIN))))
+                            y = (int(math.floor(event.pos[1]/(CELLSIZE+MARGIN))))
+                            # the player clicked on a mine and lost
                             if (minesweeper_map[y][x] == 'X'):
-                                print("Game Over!")
-                                self.show_board(minesweeper_map)
+                                self.updateBoard(minesweeper_map, player_map, y, x, width, height)
+                                self.draw_board(screen, CELLSIZE, minesweeper_map, MARGIN)
                                 final_time = time.time()
                                 total_time = final_time-initial_time
-                                print("your time: {} seconds" .format(int(total_time)))
+                                score = pygame.image.load('lost.png').convert_alpha()
                                 GameStatus = self.CheckContinueGame(score)
                                 firstClick = GameStatus
                                 break
+                            # the player made a safe move
                             else:
                                 self.updateBoard(minesweeper_map, player_map, y, x, width, height)
-                                time.sleep(0.1)
-                                self.show_board(player_map)
-                                score += 1
-                        else:
-                            print("You have Won!")
-                            final_time = time.time()
-                            total_time = final_time-initial_time
-                            print("your time: {} seconds" .format(int(total_time)))
-                            GameStatus = self.CheckContinueGame(score)
-                            firstClick = GameStatus
-                            break
+                    # the player successfully cleared the board and won 
+                    else:
+                        final_time = time.time()
+                        total_time = final_time-initial_time
+                        score = pygame.image.load('won.png').convert_alpha()
+                        GameStatus = self.CheckContinueGame(score)
+                        firstClick = GameStatus
+                        break
+        pygame.quit()
                         
 # Start of Program
-height = int(input("enter number of rows:"))
-width = int(input("enter number of columns:"))
-n_bombs = int(input("enter number of bombs:"))
+height = 9
+width = 9
+n_bombs = 10
 mineSweeper = MineSweeper(n_bombs, height, width)
 if __name__ == "__main__":
     try:
