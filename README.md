@@ -1,10 +1,7 @@
-# <s>Command_Line<s> MineSweeper Game & Solver
+# Command_Line MineSweeper Game & Solver
 
 after installing ubuntu for the first time. 
-and checking some of the default apps, I encountered the good old MineSweeper. then Idecided to make a mine sweeper game and an AI program that can solve it
-<s>and here we are in phase one after building the game itself.<s>
-
-finished the gui as well as the ai-solver
+and checking some of the default apps, I encountered the good old MineSweeper. then I decided to make a mine sweeper game and an AI program that can solve it
 
 #### to-do:
 
