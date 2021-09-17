@@ -1,4 +1,5 @@
 from Basic_solver import Basic_solver
+from Advanced_solver import Advanced_solver
 import random
 import time
 import sys
@@ -11,7 +12,7 @@ pygame.init()
 
 height = 20 # number of rows
 width = 50 # number of columns
-n_bombs = 160   #number of bombs
+n_bombs = 190   #number of bombs
 CELLSIZE = 24
 MARGIN = 1
 screen_height = height*(CELLSIZE+MARGIN)
@@ -160,7 +161,7 @@ class MineSweeper:
             return
         
         player_map[y][x]=minesweeper_map[y][x]
-        
+        time.sleep(0.03)
         self.draw_board(screen, CELLSIZE, player_map, MARGIN)
         if (x > 0 and minesweeper_map[y][x] == 0): # left
             self.update_board(minesweeper_map, player_map, y, x-1, width, height, screen)
@@ -230,8 +231,8 @@ class MineSweeper:
         firstClick = True
         selectMode = True
         player_map = self.generate_player_board(height, width)
-        basicSolver = Basic_solver(player_map, height, width)
-        self.subscribe(basicSolver)
+        advancedSolver = Advanced_solver(player_map, height, width)
+        self.subscribe(advancedSolver)
         self.dispatch(player_map)
         mode = ""
         while GameStatus:
@@ -285,7 +286,6 @@ class MineSweeper:
                                         GameStatus = self.CheckContinueGame(score, total_time, screen)
                                         firstClick = GameStatus
                                         selectMode = GameStatus
-                                        break
                                     # the player made a safe move
                                     else:
                                         self.update_board(minesweeper_map, player_map, y, x, width, height, screen)
@@ -298,11 +298,10 @@ class MineSweeper:
                                 GameStatus = self.CheckContinueGame(score, total_time, screen)
                                 firstClick = GameStatus
                                 selectMode = GameStatus
-                                break
 
                 elif(mode=="a"):
                     self.dispatch(player_map)
-                    a = basicSolver.make_initial_guess()
+                    a = advancedSolver.make_initial_guess()
                     x = a[0]
                     y = a[1]
                     bombs_arr = self.make_bomb_arr(height, width, n_bombs, x, y)
@@ -317,7 +316,7 @@ class MineSweeper:
                     while not firstClick:
                         if self.check_won(player_map, n_bombs) == False:
                                 self.dispatch(player_map)                        
-                                a = basicSolver.make_guess()
+                                a = advancedSolver.make_guess()
                                 for pos in a:
                                     x = pos[0]
                                     y = pos[1]
@@ -333,7 +332,6 @@ class MineSweeper:
                                         GameStatus = self.CheckContinueGame(score, total_time, screen)
                                         firstClick = GameStatus
                                         selectMode = GameStatus
-                                        break
                                     # the player made a safe move
                                     else:
                                         self.update_board(minesweeper_map, player_map, y, x, width, height, screen)
@@ -348,7 +346,6 @@ class MineSweeper:
                             GameStatus = self.CheckContinueGame(score, total_time, screen)
                             firstClick = GameStatus
                             selectMode = GameStatus
-                            break
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

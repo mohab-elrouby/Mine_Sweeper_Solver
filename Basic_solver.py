@@ -34,30 +34,33 @@ class Basic_solver:
     return location
     
 
-
   def make_guess(self):
     # first loop through the whole field to flag around any cells that have the same number
     # of unopened cells as the cell's own number
     for i in range(self.ncol):
       for j in range(self.nrow):
-        if (self.player_map[j][i] == "-" or self.player_map[j][i] == "*" or self.player_map[j][i] == 0):
-          continue
-        else:
+        if (self.player_map[j][i] != "-" and self.player_map[j][i] != "*" and self.player_map[j][i] != 0):
           self.check_and_flag_around(i,j)
+        # else:
+        #   self.check_and_flag_around(i,j)
     # then loop once again to open any unopened&unflagged cells around any cell that have the same
     # number of flagged cells around it as the cell's own number
     
     allLocations = [] # list that will hold all locations of cells that can be safely opened
     for i in range(self.ncol):
       for j in range(self.nrow):
-        if (self.player_map[j][i] == "-" or self.player_map[j][i] == "*" or self.player_map[j][i] == 0):
-          continue
-        else:
+        if (self.player_map[j][i] != "-" and self.player_map[j][i] != "*" and self.player_map[j][i] != 0):
           locations = self.check_and_open_around(i,j) #location of cell to be opened
           if(len(locations)):
             for location in locations:
               if not allLocations.count(location):
                 allLocations.append(location)
+        # else:
+        #   locations = self.check_and_open_around(i,j) #location of cell to be opened
+        #   if(len(locations)):
+        #     for location in locations:
+        #       if not allLocations.count(location):
+        #         allLocations.append(location)
     # if there are no known moves make a random guess
     if(not len(allLocations)):
       return self.make_random_guess()
