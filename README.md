@@ -3,8 +3,9 @@
 after installing ubuntu for the first time. 
 and checking some of the default apps, I encountered the good old MineSweeper. then I decided to make a mine sweeper game and an AI program that can solve it
 
+<img src="https://github.com/mohab99/Mine_Sweeper_Solver/blob/main/imgs/screen_shot4.png"/>
 <img src="https://github.com/mohab99/Mine_Sweeper_Solver/blob/main/imgs/screen_shot3.png"/>
-<img src="https://github.com/mohab99/Mine_Sweeper_Solver/blob/gui/winning_screen.png"/> 
+<img src="https://github.com/mohab99/Mine_Sweeper_Solver/blob/main/imgs/screen_shot2.png"/>
 
 
 #### to-do:
@@ -15,3 +16,4 @@ and checking some of the default apps, I encountered the good old MineSweeper. t
 - <s>add a more advanced solver algorithm, using probability</s>
 
 ### ALL DONE!
+
